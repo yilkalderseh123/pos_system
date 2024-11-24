@@ -1,0 +1,52 @@
+import 'package:flutter/material.dart';
+import '../screens/admin_screen.dart';
+import '../screens/cashier_screen.dart';
+import '../screens/dashboard_screen.dart';
+import '../screens/login_screen.dart';
+import '../screens/kitchen_screen.dart';
+import '../screens/manager_screen.dart';
+import '../screens/menu_screen.dart';
+import '../screens/waitstaff_screen.dart';
+
+/// A utility class for managing app routes.
+class AppRoutes {
+  // Route names as constants
+  static const String login_screen = '/';
+  static const String admin_screen = '/admin_screen';
+  static const String cashier_screen = '/cashier_screen';
+  static const String dashboard_screen = '/dashboard_screen';
+  static const String kitchen_screen = '/kitchen_screen';
+  static const String manager_screen = '/manager_screen';
+  static const String menu_screen = '/menu_screen';
+  static const String waitstaff_screen = '/waitstaff_screen';
+
+  /// Method to configure all routes.
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case login_screen:
+        return MaterialPageRoute(builder: (_) => LoginScreen());
+      case admin_screen:
+        return MaterialPageRoute(builder: (_) => AdminScreen());
+      case cashier_screen:
+        return MaterialPageRoute(builder: (_) => CashierScreen());
+      case dashboard_screen:
+        return MaterialPageRoute(builder: (_) => DashboardScreen());
+      case kitchen_screen:
+        return MaterialPageRoute(builder: (_) => KitchenScreen());
+      case manager_screen:
+        return MaterialPageRoute(builder: (_) => ManagerScreen());
+      case menu_screen:
+        return MaterialPageRoute(builder: (_) => MenuScreen());
+      case waitstaff_screen:
+        return MaterialPageRoute(builder: (_) => WaitstaffScreen());
+      default:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Text('Page not found'),
+            ),
+          ),
+        );
+    }
+  }
+}
