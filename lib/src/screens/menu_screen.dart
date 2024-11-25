@@ -7,21 +7,23 @@ class MenuScreen extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
 
+  MenuScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => MenuBloc(),
       child: Scaffold(
-        appBar: AppBar(title: Text('Menu Management')),
+        appBar: AppBar(title: const Text('Menu Management')),
         body: Column(
           children: [
             TextField(
               controller: nameController,
-              decoration: InputDecoration(labelText: 'Item Name'),
+              decoration: const InputDecoration(labelText: 'Item Name'),
             ),
             TextField(
               controller: priceController,
-              decoration: InputDecoration(labelText: 'Item Price'),
+              decoration: const InputDecoration(labelText: 'Item Price'),
               keyboardType: TextInputType.number,
             ),
             ElevatedButton(
@@ -31,7 +33,7 @@ class MenuScreen extends StatelessWidget {
                 final menuItem = MenuItem(name: name, price: price);
                 context.read<MenuBloc>().add(AddMenuItem(menuItem));
               },
-              child: Text('Add Item'),
+              child: const Text('Add Item'),
             ),
             Expanded(
               child: BlocBuilder<MenuBloc, MenuState>(

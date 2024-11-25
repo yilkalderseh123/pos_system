@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import './login_screen.dart'; // Ensure you import the LoginScreen
+import './waitstaff_order_management.dart';
+import './waitstaff_order_history.dart';
+import './waitstaff_table_assign.dart';
 
 class WaitstaffScreen extends StatelessWidget {
-  const WaitstaffScreen({Key? key}) : super(key: key);
+  const WaitstaffScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +16,11 @@ class WaitstaffScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              // Add logout functionality here
-              Navigator.pop(context); // For now, just go back
+              // Navigate to LoginScreen on logout
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
             },
           ),
         ],
@@ -36,39 +43,44 @@ class WaitstaffScreen extends StatelessWidget {
             Expanded(
               child: ListView(
                 children: [
-                  // Section for tables
-                  _buildSectionTitle('Assigned Tables'),
-                  _buildTableCard(context, 'Table 1', '2 Orders Pending'),
-                  _buildTableCard(context, 'Table 2', '1 Order Pending'),
-                  _buildTableCard(context, 'Table 3', 'No Orders'),
-
-                  const SizedBox(height: 20),
-
                   // Section to manage orders
                   _buildSectionTitle('Manage Orders'),
                   _buildActionButton(
                     context,
                     Icons.add_shopping_cart,
-                    'Take Order',
+                    'Order Management',
                     () {
                       // Navigate to Order Taking Screen (You can create this page)
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const TakeOrderScreen()),
+                            builder: (context) => OrderManagementPage()),
                       );
                     },
                   ),
                   _buildActionButton(
                     context,
                     Icons.history,
-                    'View Orders',
+                    'Order History Page',
                     () {
                       // Navigate to Orders History Screen (You can create this page)
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const OrderHistoryScreen()),
+                            builder: (context) => OrderHistoryPage()),
+                      );
+                    },
+                  ),
+                  _buildActionButton(
+                    context,
+                    Icons.history,
+                    'Table Assignment Page',
+                    () {
+                      // Navigate to Orders History Screen (You can create this page)
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => TableAssignmentPage()),
                       );
                     },
                   ),
@@ -90,33 +102,6 @@ class WaitstaffScreen extends StatelessWidget {
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  // Helper function to create table cards
-  Widget _buildTableCard(
-      BuildContext context, String tableName, String orderStatus) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 4,
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16.0),
-        title: Text(tableName,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        subtitle: Text(orderStatus),
-        trailing: IconButton(
-          icon: const Icon(Icons.arrow_forward),
-          onPressed: () {
-            // Navigate to Order Status Management for the specific table
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OrderStatusScreen(tableName: tableName),
-              ),
-            );
-          },
         ),
       ),
     );
@@ -153,48 +138,6 @@ class WaitstaffScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// Placeholder screen for Take Order
-class TakeOrderScreen extends StatelessWidget {
-  const TakeOrderScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Take Order')),
-      body: Center(child: const Text('Order Taking Page')),
-    );
-  }
-}
-
-// Placeholder screen for Order History
-class OrderHistoryScreen extends StatelessWidget {
-  const OrderHistoryScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Order History')),
-      body: Center(child: const Text('Order History Page')),
-    );
-  }
-}
-
-// Placeholder screen for Order Status Management
-class OrderStatusScreen extends StatelessWidget {
-  final String tableName;
-
-  const OrderStatusScreen({Key? key, required this.tableName})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Manage Orders for $tableName')),
-      body: Center(child: const Text('Order Status Management Page')),
     );
   }
 }

@@ -6,9 +6,11 @@ void main() {
 }
 
 class RestaurantPOSApp extends StatelessWidget {
+  const RestaurantPOSApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.login_screen,
       onGenerateRoute: AppRoutes.generateRoute,

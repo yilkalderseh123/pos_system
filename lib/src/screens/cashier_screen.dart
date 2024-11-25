@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import './cashier_sales_transaction.dart';
+import './cashier_transaction_history.dart';
+import './login_screen.dart'; // Ensure you import the LoginScreen
 
 class CashierScreen extends StatelessWidget {
-  const CashierScreen({Key? key}) : super(key: key);
+  const CashierScreen({super.key});
+
+  get transaction => null;
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +17,11 @@ class CashierScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              // You can add a logout functionality here
-              Navigator.pop(context); // For now, just go back
+              // Navigate to LoginScreen on logout
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
             },
           ),
         ],
@@ -48,20 +56,7 @@ class CashierScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SaleProcessingScreen()),
-                      );
-                    },
-                  ),
-                  _buildActionButton(
-                    context,
-                    Icons.receipt,
-                    'View Receipts',
-                    () {
-                      // Navigate to Receipts Screen (You can create this page)
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ReceiptsScreen()),
+                            builder: (context) => TransactionPage()),
                       );
                     },
                   ),
@@ -76,19 +71,6 @@ class CashierScreen extends StatelessWidget {
                         MaterialPageRoute(
                             builder: (context) =>
                                 const TransactionHistoryScreen()),
-                      );
-                    },
-                  ),
-                  _buildActionButton(
-                    context,
-                    Icons.settings,
-                    'Settings',
-                    () {
-                      // Navigate to Settings Screen (You can create this page)
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SettingsScreen()),
                       );
                     },
                   ),
@@ -132,58 +114,6 @@ class CashierScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// Placeholder screen for Sale Processing
-class SaleProcessingScreen extends StatelessWidget {
-  const SaleProcessingScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Process Sale')),
-      body: Center(child: const Text('Sale Processing Page')),
-    );
-  }
-}
-
-// Placeholder screen for Receipts
-class ReceiptsScreen extends StatelessWidget {
-  const ReceiptsScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Receipts')),
-      body: Center(child: const Text('Receipts Page')),
-    );
-  }
-}
-
-// Placeholder screen for Transaction History
-class TransactionHistoryScreen extends StatelessWidget {
-  const TransactionHistoryScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Transaction History')),
-      body: Center(child: const Text('Transaction History Page')),
-    );
-  }
-}
-
-// Placeholder screen for Settings
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: Center(child: const Text('Settings Page')),
     );
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import './login_screen.dart'; // Ensure you import the LoginScreen
+import './manager_sales_report.dart';
+import './manager_inventory_management.dart';
 
 class ManagerScreen extends StatelessWidget {
-  const ManagerScreen({Key? key}) : super(key: key);
+  const ManagerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +15,11 @@ class ManagerScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              // Add logout functionality here
-              Navigator.pop(context); // For now, just go back
+              // Navigate to LoginScreen on logout
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
             },
           ),
         ],
@@ -43,7 +49,7 @@ class ManagerScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const SalesReportsScreen()),
+                      builder: (context) => ManagerSalesReportPage()),
                 );
               },
             ),
@@ -60,37 +66,7 @@ class ManagerScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const InventoryManagementScreen()),
-                );
-              },
-            ),
-            _buildActionButton(
-              context,
-              Icons.add_shopping_cart,
-              'Add New Item',
-              () {
-                // Navigate to Add New Item Page (You can create this page)
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const AddItemScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Section for System Settings
-            _buildSectionTitle('System Settings'),
-            _buildActionButton(
-              context,
-              Icons.settings,
-              'Manage System Settings',
-              () {
-                // Navigate to System Settings Page (You can create this page)
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const SystemSettingsScreen()),
+                      builder: (context) => InventoryManagementPage()),
                 );
               },
             ),
@@ -145,58 +121,6 @@ class ManagerScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// Placeholder screen for Sales Reports
-class SalesReportsScreen extends StatelessWidget {
-  const SalesReportsScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sales Reports')),
-      body: Center(child: const Text('Sales Reports Page')),
-    );
-  }
-}
-
-// Placeholder screen for Inventory Management
-class InventoryManagementScreen extends StatelessWidget {
-  const InventoryManagementScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Inventory Management')),
-      body: Center(child: const Text('Inventory Management Page')),
-    );
-  }
-}
-
-// Placeholder screen for Add New Item
-class AddItemScreen extends StatelessWidget {
-  const AddItemScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Add New Item')),
-      body: Center(child: const Text('Add New Item Page')),
-    );
-  }
-}
-
-// Placeholder screen for System Settings
-class SystemSettingsScreen extends StatelessWidget {
-  const SystemSettingsScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('System Settings')),
-      body: Center(child: const Text('System Settings Page')),
     );
   }
 }

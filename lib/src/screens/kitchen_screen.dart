@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import './login_screen.dart'; // Ensure you import the LoginScreen
 
 class KitchenScreen extends StatelessWidget {
-  KitchenScreen({Key? key}) : super(key: key);
+  KitchenScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +13,11 @@ class KitchenScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              // Add logout functionality here
-              Navigator.pop(context); // For now, just go back
+              // Navigate to LoginScreen on logout
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
             },
           ),
         ],

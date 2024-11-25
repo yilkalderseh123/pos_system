@@ -10,6 +10,8 @@ class LoginScreen extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  LoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,14 +27,14 @@ class LoginScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Centered Title
-                    Text(
+                    const Text(
                       'Login',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     // Login Form
                     ConstrainedBox(
                       constraints: BoxConstraints(
@@ -42,15 +44,15 @@ class LoginScreen extends StatelessWidget {
                         children: [
                           TextField(
                             controller: usernameController,
-                            decoration: InputDecoration(labelText: 'Username'),
+                            decoration: const InputDecoration(labelText: 'Username'),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           TextField(
                             controller: passwordController,
-                            decoration: InputDecoration(labelText: 'Password'),
+                            decoration: const InputDecoration(labelText: 'Password'),
                             obscureText: true,
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pushReplacement(
@@ -59,7 +61,7 @@ class LoginScreen extends StatelessWidget {
                                     builder: (context) => DashboardScreen()),
                               );
                             },
-                            child: Text('Login'),
+                            child: const Text('Login'),
                           ),
                         ],
                       ),

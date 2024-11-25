@@ -26,19 +26,19 @@ class AppRoutes {
       case login_screen:
         return MaterialPageRoute(builder: (_) => LoginScreen());
       case admin_screen:
-        return MaterialPageRoute(builder: (_) => AdminScreen());
+        return MaterialPageRoute(builder: (_) => const AdminScreen());
       case cashier_screen:
-        return MaterialPageRoute(builder: (_) => CashierScreen());
+        return MaterialPageRoute(builder: (_) => const CashierScreen());
       case dashboard_screen:
         return MaterialPageRoute(builder: (_) => DashboardScreen());
       case kitchen_screen:
         return MaterialPageRoute(builder: (_) => KitchenScreen());
       case manager_screen:
-        return MaterialPageRoute(builder: (_) => ManagerScreen());
+        return MaterialPageRoute(builder: (_) => const ManagerScreen());
       case menu_screen:
         return MaterialPageRoute(builder: (_) => MenuScreen());
       case waitstaff_screen:
-        return MaterialPageRoute(builder: (_) => WaitstaffScreen());
+        return MaterialPageRoute(builder: (_) => const WaitstaffScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

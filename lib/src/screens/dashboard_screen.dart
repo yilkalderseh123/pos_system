@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'menu_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Dashboard')),
+      appBar: AppBar(title: const Text('Dashboard')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -15,7 +17,7 @@ class DashboardScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => MenuScreen()),
               ),
-              child: Text('Manage Menu'),
+              child: const Text('Manage Menu'),
             ),
           ],
         ),

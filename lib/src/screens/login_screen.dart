@@ -22,6 +22,8 @@ class LoginScreen extends StatelessWidget {
   // Variable to hold selected role
   final ValueNotifier<String?> selectedRole = ValueNotifier<String?>(null);
 
+  LoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,14 +39,14 @@ class LoginScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Centered Title
-                    Text(
+                    const Text(
                       'Login',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     // Login Form
                     ConstrainedBox(
                       constraints: BoxConstraints(
@@ -55,22 +57,22 @@ class LoginScreen extends StatelessWidget {
                           // Username TextField
                           TextField(
                             controller: usernameController,
-                            decoration: InputDecoration(labelText: 'Username'),
+                            decoration: const InputDecoration(labelText: 'Username'),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           // Password TextField
                           TextField(
                             controller: passwordController,
-                            decoration: InputDecoration(labelText: 'Password'),
+                            decoration: const InputDecoration(labelText: 'Password'),
                             obscureText: true,
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           // Role Selector Dropdown
                           ValueListenableBuilder<String?>(
                             valueListenable: selectedRole,
                             builder: (context, value, child) {
                               return DropdownButtonFormField<String>(
-                                decoration: InputDecoration(labelText: 'Role'),
+                                decoration: const InputDecoration(labelText: 'Role'),
                                 value: value,
                                 items: roles.map((role) {
                                   return DropdownMenuItem<String>(
@@ -84,7 +86,7 @@ class LoginScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           // Login Button
                           ElevatedButton(
                             onPressed: () {
@@ -95,19 +97,19 @@ class LoginScreen extends StatelessWidget {
                                 Widget destinationScreen;
                                 switch (selectedRole.value) {
                                   case 'Admin':
-                                    destinationScreen = AdminScreen();
+                                    destinationScreen = const AdminScreen();
                                     break;
                                   case 'Manager':
-                                    destinationScreen = ManagerScreen();
+                                    destinationScreen = const ManagerScreen();
                                     break;
                                   case 'Cashier':
-                                    destinationScreen = CashierScreen();
+                                    destinationScreen = const CashierScreen();
                                     break;
                                   case 'Kitchen':
                                     destinationScreen = KitchenScreen();
                                     break;
                                   case 'Waitstaff':
-                                    destinationScreen = WaitstaffScreen();
+                                    destinationScreen = const WaitstaffScreen();
                                     break;
                                   default:
                                     destinationScreen = DashboardScreen();
@@ -122,13 +124,13 @@ class LoginScreen extends StatelessWidget {
                               } else {
                                 // Show error message
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
+                                  const SnackBar(
                                       content: Text(
                                           'Please fill all fields and select a role.')),
                                 );
                               }
                             },
-                            child: Text('Login'),
+                            child: const Text('Login'),
                           ),
                         ],
                       ),
