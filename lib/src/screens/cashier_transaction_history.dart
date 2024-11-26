@@ -1,112 +1,117 @@
 import 'package:flutter/material.dart';
-import './cashier_view_reciets.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
-class TransactionHistoryScreen extends StatelessWidget {
+// TransactionHistoryScreen widget
+class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
+}
+
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+  late Box transactionBox;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeHive();
+  }
+
+  // Initialize Hive and open the transactions box
+  Future<void> _initializeHive() async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      Hive.init(appDir.path); // Initialize Hive
+
+      transactionBox = await Hive.openBox('items'); // Open the shared Hive box
+
+      setState(() {
+        isLoading = false; // Loading completed
+      });
+    } catch (e) {
+      debugPrint('Hive initialization error: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    Hive.close(); // Close Hive when the widget is disposed
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Transaction History')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction History'),
         centerTitle: true,
       ),
-      body: TransactionHistoryPage(),
-    );
-  }
-}
-
-class TransactionHistoryPage extends StatelessWidget {
-  final List<Map<String, dynamic>> transactions = [
-    {
-      'id': '123456',
-      'date': '2024-11-25',
-      'time': '12:45 PM',
-      'total': 37.97,
-      'status': 'Completed',
-    },
-    {
-      'id': '123457',
-      'date': '2024-11-24',
-      'time': '3:15 PM',
-      'total': 24.50,
-      'status': 'Completed',
-    },
-    {
-      'id': '123458',
-      'date': '2024-11-23',
-      'time': '5:30 PM',
-      'total': 55.80,
-      'status': 'Pending',
-    },
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: ListView.builder(
-        itemCount: transactions.length,
+      body: ListView.builder(
+        itemCount: transactionBox.length,
         itemBuilder: (context, index) {
-          final transaction = transactions[index];
+          final map = transactionBox.getAt(index);
+          if (map == null) {
+            return const SizedBox(); // Skip null entries
+          }
+
+          final transaction = Item.fromMap(map); // Deserialize to Item
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 8),
             elevation: 3,
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: transaction['status'] == 'Completed'
-                    ? Colors.green
-                    : Colors.orange,
-                child: Icon(
-                  transaction['status'] == 'Completed'
-                      ? Icons.check_circle
-                      : Icons.pending,
+                backgroundColor: Colors.blue,
+                child: const Icon(
+                  Icons.receipt,
                   color: Colors.white,
                 ),
               ),
               title: Text(
-                "Receipt #${transaction['id']}",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                "Item: ${transaction.name}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                "Date: ${transaction['date']}\nTime: ${transaction['time']}",
+                "Price: \$${transaction.price.toStringAsFixed(2)}",
               ),
-              trailing: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "\$${transaction['total'].toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  Text(
-                    transaction['status'],
-                    style: TextStyle(
-                      color: transaction['status'] == 'Completed'
-                          ? Colors.green
-                          : Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
-              onTap: () {
-                // Navigate to the receipt detail page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ReceiptDetailScreen(transaction: transaction),
-                  ),
-                );
-              },
             ),
           );
         },
       ),
     );
+  }
+}
+
+// Item class (shared with the TransactionPage)
+class Item {
+  final String name;
+  final double price;
+
+  Item({required this.name, required this.price});
+
+  // Deserialize from a Map
+  factory Item.fromMap(Map<dynamic, dynamic> map) {
+    return Item(
+      name: map['name'] as String,
+      price: map['price'] as double,
+    );
+  }
+
+  // Serialize to a Map
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'price': price,
+    };
   }
 }

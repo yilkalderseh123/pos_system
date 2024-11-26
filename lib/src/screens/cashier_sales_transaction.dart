@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class Item {
+class Item extends HiveObject {
   final String name;
   final double price;
 
   Item({required this.name, required this.price});
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Transaction Page',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const TransactionPage(),
+  factory Item.fromMap(Map<dynamic, dynamic> map) {
+    return Item(
+      name: map['name'] as String,
+      price: map['price'] as double,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'price': price,
+    };
   }
 }
 
@@ -33,7 +31,9 @@ class TransactionPage extends StatefulWidget {
 }
 
 class _TransactionPageState extends State<TransactionPage> {
-  final List<Item> items = [];
+  late Box itemBox;
+  late Box settingsBox;
+  List<Item> items = [];
   String itemName = '';
   double itemPrice = 0.0;
   String selectedPaymentMethod = 'Cash';
@@ -42,27 +42,35 @@ class _TransactionPageState extends State<TransactionPage> {
   @override
   void initState() {
     super.initState();
-    _loadPaymentMethod();
+    _initializeHive();
   }
 
-  Future<void> _loadPaymentMethod() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _initializeHive() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    Hive.init(appDir.path);
+
+    itemBox = await Hive.openBox('items');
+    settingsBox = await Hive.openBox('settings');
+
     setState(() {
-      selectedPaymentMethod = prefs.getString('paymentMethod') ?? 'Cash';
+      items = itemBox.values
+          .map((e) => Item.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
+      selectedPaymentMethod =
+          settingsBox.get('paymentMethod', defaultValue: 'Cash');
     });
   }
 
   Future<void> _savePaymentMethod(String method) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('paymentMethod', method);
+    await settingsBox.put('paymentMethod', method);
   }
 
   void addItem(String name, double price) {
+    final newItem = Item(name: name, price: price);
     setState(() {
-      items.add(Item(name: name, price: price));
-      itemName = '';
-      itemPrice = 0.0;
+      items.add(newItem);
     });
+    itemBox.add(newItem.toMap());
   }
 
   double getTotalAmount() {
@@ -73,6 +81,7 @@ class _TransactionPageState extends State<TransactionPage> {
     setState(() {
       items.clear();
     });
+    itemBox.clear();
   }
 
   void printReceipt() {
@@ -113,26 +122,50 @@ class _TransactionPageState extends State<TransactionPage> {
             padding: const EdgeInsets.all(16.0),
             child: isDesktop
                 ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         flex: 1,
-                        child: buildInputSection(),
+                        child: Card(
+                          elevation: 4,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: buildInputSection(),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
                         flex: 2,
-                        child: buildItemListAndSummary(),
+                        child: Card(
+                          elevation: 4,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: buildItemListAndSummary(),
+                          ),
+                        ),
                       ),
                     ],
                   )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildInputSection(),
-                      const SizedBox(height: 20),
-                      Expanded(child: buildItemListAndSummary()),
-                    ],
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Card(
+                          elevation: 4,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: buildInputSection(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 4,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: buildItemListAndSummary(),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
           );
         },
@@ -144,6 +177,11 @@ class _TransactionPageState extends State<TransactionPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text(
+          'Add Item',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
         TextField(
           decoration: const InputDecoration(
             labelText: 'Item Name',
@@ -177,6 +215,11 @@ class _TransactionPageState extends State<TransactionPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text(
+          'Items List',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
         Expanded(
           child: items.isEmpty
               ? const Center(child: Text('No items added.'))
@@ -185,6 +228,9 @@ class _TransactionPageState extends State<TransactionPage> {
                   itemBuilder: (context, index) {
                     final item = items[index];
                     return ListTile(
+                      leading: CircleAvatar(
+                        child: Text(item.name[0].toUpperCase()),
+                      ),
                       title: Text(item.name),
                       subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
                     );
