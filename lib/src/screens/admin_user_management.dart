@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -9,8 +10,9 @@ class UserManagementScreen extends StatefulWidget {
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
-  late Box _userBox; // Use dynamic typing to handle values of any type
+  late Box _userBox;
   final String boxName = 'users';
+  String _selectedRole = 'User'; // Initialize the default role
 
   @override
   void initState() {
@@ -19,35 +21,44 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Future<void> _initializeHive() async {
-    await Hive.initFlutter(); // Initialize Hive
-    _userBox = await Hive.openBox(boxName); // Open the box
-    setState(() {}); // Trigger a rebuild after the box is initialized
+    try {
+      final appDocumentDir = await getApplicationDocumentsDirectory();
+      Hive.init(appDocumentDir.path);
+      _userBox = await Hive.openBox(boxName);
+      setState(() {}); // Refresh UI after Hive is initialized
+    } catch (e) {
+      print('Hive initialization error: $e');
+    }
   }
 
   Future<void> _addUser(String name, String email, String role) async {
     final id = _userBox.length + 1;
     await _userBox
         .put(id, {"id": id, "name": name, "email": email, "role": role});
-    setState(() {}); // Refresh UI after adding user
+    setState(() {}); // Refresh UI
   }
 
   Future<void> _editUser(int key, Map<String, dynamic> updatedUser) async {
     await _userBox.put(key, updatedUser);
-    setState(() {}); // Refresh UI after editing user
+    setState(() {}); // Refresh UI
   }
 
   Future<void> _deleteUser(int key) async {
     await _userBox.delete(key);
-    setState(() {}); // Refresh UI after deleting user
+    setState(() {}); // Refresh UI
+  }
+
+  @override
+  void dispose() {
+    Hive.close(); // Ensure Hive is closed when the widget is disposed
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (_userBox.isOpen == false) {
       return const Scaffold(
-        body: Center(
-            child:
-                CircularProgressIndicator()), // Show loading while initializing Hive
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -66,55 +77,47 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ValueListenableBuilder(
-                valueListenable: _userBox.listenable(),
-                builder: (context, Box box, _) {
-                  if (box.isEmpty) {
-                    return const Center(child: Text("No users found."));
-                  }
+              child: _userBox.isEmpty
+                  ? const Center(child: Text('No users added.'))
+                  : ListView.builder(
+                      itemCount: _userBox.keys.length,
+                      itemBuilder: (context, index) {
+                        final key = _userBox.keyAt(index);
+                        final user = _userBox.get(key);
 
-                  return ListView.builder(
-                    itemCount: box.keys.length,
-                    itemBuilder: (context, index) {
-                      final key = box.keyAt(index);
-                      final user = box.get(key);
-
-                      // Safe type casting: Check the type before casting
-                      if (user is Map<String, dynamic>) {
-                        return Card(
-                          elevation: 4,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              child: Text(user['name'][0]),
+                        if (user is Map<String, dynamic>) {
+                          return Card(
+                            elevation: 4,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                child: Text(user['name'][0]),
+                              ),
+                              title: Text(user['name']),
+                              subtitle: Text(
+                                  "Email: ${user['email']}\nRole: ${user['role']}"),
+                              isThreeLine: true,
+                              trailing: PopupMenuButton(
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    _showEditUserDialog(key, user);
+                                  } else if (value == 'delete') {
+                                    _deleteUser(key);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                      value: 'edit', child: Text('Edit')),
+                                  const PopupMenuItem(
+                                      value: 'delete', child: Text('Delete')),
+                                ],
+                              ),
                             ),
-                            title: Text(user['name']),
-                            subtitle: Text(
-                                "Email: ${user['email']}\nRole: ${user['role']}"),
-                            isThreeLine: true,
-                            trailing: PopupMenuButton(
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  _showEditUserDialog(key, user);
-                                } else if (value == 'delete') {
-                                  _deleteUser(key);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                    value: 'edit', child: Text('Edit')),
-                                const PopupMenuItem(
-                                    value: 'delete', child: Text('Delete')),
-                              ],
-                            ),
-                          ),
-                        );
-                      } else {
-                        return const SizedBox(); // Return an empty widget if casting fails
-                      }
-                    },
-                  );
-                },
-              ),
+                          );
+                        } else {
+                          return const SizedBox();
+                        }
+                      },
+                    ),
             ),
           ],
         ),
@@ -125,7 +128,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _showAddUserDialog() {
     String name = '';
     String email = '';
-    String role = 'User';
 
     showDialog(
       context: context,
@@ -144,13 +146,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 onChanged: (value) => email = value,
               ),
               DropdownButtonFormField<String>(
-                value: role,
+                value: _selectedRole,
                 items: const [
-                  DropdownMenuItem(value: 'User', child: Text('User')),
-                  DropdownMenuItem(value: 'Editor', child: Text('Editor')),
                   DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+                  DropdownMenuItem(value: 'Manager', child: Text('Manager')),
+                  DropdownMenuItem(value: 'Cashier', child: Text('Cashier')),
+                  DropdownMenuItem(value: 'Kitchen', child: Text('Kitchen')),
+                  DropdownMenuItem(
+                      value: 'Waitstaff', child: Text('Waitstaff')),
+                  DropdownMenuItem(value: 'User', child: Text('User')),
                 ],
-                onChanged: (value) => role = value ?? 'User',
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedRole = value;
+                    });
+                  }
+                },
                 decoration: const InputDecoration(labelText: "Role"),
               ),
             ],
@@ -163,7 +175,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ElevatedButton(
               onPressed: () {
                 if (name.isNotEmpty && email.isNotEmpty) {
-                  _addUser(name, email, role);
+                  _addUser(name, email, _selectedRole);
                   Navigator.pop(context);
                 }
               },
@@ -201,11 +213,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               DropdownButtonFormField<String>(
                 value: role,
                 items: const [
-                  DropdownMenuItem(value: 'User', child: Text('User')),
-                  DropdownMenuItem(value: 'Editor', child: Text('Editor')),
                   DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+                  DropdownMenuItem(value: 'Manager', child: Text('Manager')),
+                  DropdownMenuItem(value: 'Cashier', child: Text('Cashier')),
+                  DropdownMenuItem(value: 'Kitchen', child: Text('Kitchen')),
+                  DropdownMenuItem(
+                      value: 'Waitstaff', child: Text('Waitstaff')),
+                  DropdownMenuItem(value: 'User', child: Text('User')),
                 ],
-                onChanged: (value) => role = value ?? role,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      role = value;
+                    });
+                  }
+                },
                 decoration: const InputDecoration(labelText: "Role"),
               ),
             ],

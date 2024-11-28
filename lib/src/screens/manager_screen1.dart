@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import './login_screen.dart';
 import './manager_sales_report.dart';
 import './manager_add_food_or_beverage.dart';
-import './manager_food_and_beverage_display.dart'; // Import the display page
 
 class ManagerScreen extends StatelessWidget {
   const ManagerScreen({super.key});
@@ -55,7 +54,7 @@ class ManagerScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Use GridView for desktop layout, ListView for mobile
+                  // Use GridView for a desktop layout, ListView for mobile
                   isDesktop
                       ? GridView.count(
                           crossAxisCount: 2,
@@ -90,21 +89,6 @@ class ManagerScreen extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         AddFoodOrBeveragePage(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildActionCard(
-                              context,
-                              Icons.view_list,
-                              'View Menu Items',
-                              'Display added food and beverage items.',
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const DisplayFoodBeveragePage(),
                                   ),
                                 );
                               },
@@ -144,22 +128,6 @@ class ManagerScreen extends StatelessWidget {
                                 );
                               },
                             ),
-                            const SizedBox(height: 16),
-                            _buildActionCard(
-                              context,
-                              Icons.view_list,
-                              'View Menu Items',
-                              'Display added food and beverage items.',
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const DisplayFoodBeveragePage(),
-                                  ),
-                                );
-                              },
-                            ),
                           ],
                         ),
                 ],
@@ -179,47 +147,40 @@ class ManagerScreen extends StatelessWidget {
     String description,
     VoidCallback onPressed,
   ) {
-    bool isDesktop = MediaQuery.of(context).size.width > 600;
-
-    return SizedBox(
-      width: isDesktop
-          ? 250
-          : double.infinity, // Adjust width for desktop and mobile
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 4,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onPressed,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 48, color: Colors.blueAccent),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 4,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: Colors.blueAccent),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                  ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
