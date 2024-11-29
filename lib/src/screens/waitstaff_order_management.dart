@@ -9,7 +9,8 @@ class OrderManagementPage extends StatefulWidget {
 }
 
 class _OrderManagementPageState extends State<OrderManagementPage> {
-  late final Box<Map> _box;
+  late final Box<Map> _menuBox;
+  late final Box<Map> _orderBox; // Box for order items
   List<Map<String, dynamic>> orderItems = [];
   List<FoodBeverageItem> filteredItems = [];
   TextEditingController searchController = TextEditingController();
@@ -17,21 +18,23 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
   @override
   void initState() {
     super.initState();
-    _openBox();
+    _initializeBoxes();
   }
 
-  Future<void> _openBox() async {
-    _box = await Hive.openBox<Map>('food_beverage_items');
+  Future<void> _initializeBoxes() async {
+    _menuBox = await Hive.openBox<Map>('food_beverage_items');
+    _orderBox = await Hive.openBox<Map>('order_items'); // Open order box
     setState(() {
       _filterItems('');
+      _loadOrderItems();
     });
   }
 
   void _filterItems(String query) {
     final items = <FoodBeverageItem>[];
 
-    for (int i = 0; i < _box.length; i++) {
-      final rawItem = _box.getAt(i);
+    for (int i = 0; i < _menuBox.length; i++) {
+      final rawItem = _menuBox.getAt(i);
       if (rawItem is Map) {
         final item =
             FoodBeverageItem.fromMap(Map<String, dynamic>.from(rawItem));
@@ -44,6 +47,25 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
     setState(() {
       filteredItems = items;
     });
+  }
+
+  void _loadOrderItems() {
+    final items = <Map<String, dynamic>>[];
+
+    for (int i = 0; i < _orderBox.length; i++) {
+      final rawItem = _orderBox.getAt(i);
+      if (rawItem != null) {
+        items.add(Map<String, dynamic>.from(rawItem));
+      }
+    }
+
+    setState(() {
+      orderItems = items;
+    });
+  }
+
+  void _saveOrderItem(Map<String, dynamic> item) {
+    _orderBox.add(item); // Save the order item to Hive
   }
 
   void addToOrder(String itemName, String imageUrl) {
@@ -61,14 +83,17 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
           actions: [
             TextButton(
               onPressed: () {
+                final orderItem = {
+                  'item': itemName,
+                  'imageUrl': imageUrl,
+                  'notes': noteController.text,
+                  'status': 'Preparing',
+                };
+
                 setState(() {
-                  orderItems.add({
-                    'item': itemName,
-                    'imageUrl': imageUrl,
-                    'notes': noteController.text,
-                    'status': 'Preparing',
-                  });
+                  orderItems.add(orderItem);
                 });
+                _saveOrderItem(orderItem); // Save to Hive
                 Navigator.of(context).pop();
               },
               child: const Text('Add to Order'),
@@ -82,6 +107,14 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
   void updateOrderStatus(int index, String status) {
     setState(() {
       orderItems[index]['status'] = status;
+      _orderBox.putAt(index, orderItems[index]); // Update Hive entry
+    });
+  }
+
+  void removeOrderItem(int index) {
+    setState(() {
+      orderItems.removeAt(index);
+      _orderBox.deleteAt(index); // Remove from Hive
     });
   }
 
@@ -184,6 +217,10 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
                           icon: const Icon(Icons.check_circle),
                           onPressed: () => updateOrderStatus(index, 'Served'),
                         ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => removeOrderItem(index),
+                        ),
                       ],
                     ),
                   );
@@ -198,7 +235,8 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
 
   @override
   void dispose() {
-    _box.close();
+    _menuBox.close();
+    _orderBox.close();
     searchController.dispose();
     super.dispose();
   }
