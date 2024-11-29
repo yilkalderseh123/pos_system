@@ -35,7 +35,8 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
 
     for (int i = 0; i < _menuBox.length; i++) {
       final rawItem = _menuBox.getAt(i);
-      if (rawItem is Map) {
+      if (rawItem != null && rawItem is Map) {
+        // Validate non-null and type
         final item =
             FoodBeverageItem.fromMap(Map<String, dynamic>.from(rawItem));
         if (item.name.toLowerCase().contains(query.toLowerCase())) {
@@ -54,7 +55,7 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
 
     for (int i = 0; i < _orderBox.length; i++) {
       final rawItem = _orderBox.getAt(i);
-      if (rawItem != null) {
+      if (rawItem != null && rawItem is Map) {
         items.add(Map<String, dynamic>.from(rawItem));
       }
     }
@@ -64,8 +65,8 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
     });
   }
 
-  void _saveOrderItem(Map<String, dynamic> item) {
-    _orderBox.add(item); // Save the order item to Hive
+  void _saveOrderItem(Map<String, dynamic> order) {
+    _orderBox.add(order); // Save the full order to Hive
   }
 
   void addToOrder(String itemName, String imageUrl) {
@@ -86,7 +87,9 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
                 final orderItem = {
                   'item': itemName,
                   'imageUrl': imageUrl,
-                  'notes': noteController.text,
+                  'notes': noteController.text.isEmpty
+                      ? 'No notes'
+                      : noteController.text,
                   'status': 'Preparing',
                 };
 
@@ -105,9 +108,14 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
   }
 
   void updateOrderStatus(int index, String status) {
+    final updatedOrder = {
+      ...orderItems[index],
+      'status': status,
+    };
+
     setState(() {
-      orderItems[index]['status'] = status;
-      _orderBox.putAt(index, orderItems[index]); // Update Hive entry
+      orderItems[index] = updatedOrder;
+      _orderBox.putAt(index, updatedOrder); // Update Hive entry
     });
   }
 
@@ -153,7 +161,9 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              item.imageUrl,
+                              item.imageUrl.isNotEmpty
+                                  ? item.imageUrl
+                                  : 'https://via.placeholder.com/50',
                               fit: BoxFit.cover,
                               width: 50,
                               height: 50,
@@ -185,11 +195,12 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
               child: ListView.builder(
                 itemCount: orderItems.length,
                 itemBuilder: (context, index) {
+                  final order = orderItems[index];
                   return ListTile(
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        orderItems[index]['imageUrl'],
+                        order['imageUrl'] ?? 'https://via.placeholder.com/50',
                         fit: BoxFit.cover,
                         width: 50,
                         height: 50,
@@ -198,12 +209,12 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
                         },
                       ),
                     ),
-                    title: Text(orderItems[index]['item']),
-                    subtitle: Text(orderItems[index]['notes']),
+                    title: Text(order['item'] ?? 'Unknown Item'),
+                    subtitle: Text(order['notes'] ?? 'No notes'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(orderItems[index]['status']),
+                        Text(order['status'] ?? 'Unknown'),
                         IconButton(
                           icon: const Icon(Icons.edit),
                           onPressed: () =>
@@ -255,7 +266,6 @@ class FoodBeverageItem {
     required this.imageUrl,
   });
 
-  // Convert FoodBeverageItem to a Map for Hive storage
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -265,13 +275,12 @@ class FoodBeverageItem {
     };
   }
 
-  // Create FoodBeverageItem from a Map
   factory FoodBeverageItem.fromMap(Map<String, dynamic> map) {
     return FoodBeverageItem(
-      name: map['name'] as String,
-      quantity: map['quantity'] as int,
-      price: map['price'] as double,
-      imageUrl: map['imageUrl'] as String,
+      name: map['name'] as String? ?? 'Unknown',
+      quantity: map['quantity'] as int? ?? 0,
+      price: map['price'] as double? ?? 0.0,
+      imageUrl: map['imageUrl'] as String? ?? '',
     );
   }
 }

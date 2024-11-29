@@ -25,118 +25,166 @@ class WaitstaffScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Waitstaff Dashboard Intro
-            const Text(
-              'Welcome, Waitstaff! Ready to take orders.',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Intro Text
+                const Text(
+                  'Welcome, Waitstaff!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Manage your orders and assignments efficiently.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-            // Section to view tables and manage orders
-            Expanded(
-              child: ListView(
-                children: [
-                  // Section to manage orders
-                  _buildSectionTitle('Manage Orders'),
-                  _buildActionButton(
-                    context,
-                    Icons.add_shopping_cart,
-                    'Order Management',
-                    () {
-                      // Navigate to Order Taking Screen (You can create this page)
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => OrderManagementPage()),
-                      );
-                    },
-                  ),
-                  _buildActionButton(
-                    context,
-                    Icons.history,
-                    'Order History Page',
-                    () {
-                      // Navigate to Orders History Screen (You can create this page)
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => OrderHistoryPage()),
-                      );
-                    },
-                  ),
-                  _buildActionButton(
-                    context,
-                    Icons.history,
-                    'Table Assignment Page',
-                    () {
-                      // Navigate to Orders History Screen (You can create this page)
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => TableAssignmentPage()),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                // Dashboard Grid
+                Expanded(
+                  child: constraints.maxWidth > 600
+                      ? _buildGridDashboardDesktop(context)
+                      : _buildListDashboardMobile(context),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  // Helper function to build section titles
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+  // Responsive Grid Dashboard for Desktop
+  Widget _buildGridDashboardDesktop(BuildContext context) {
+    return GridView(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // 3 columns for desktop
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1,
       ),
+      children: [
+        _buildDashboardCard(
+          context,
+          Icons.add_shopping_cart,
+          'Order Management',
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OrderManagementPage()),
+            );
+          },
+        ),
+        _buildDashboardCard(
+          context,
+          Icons.history,
+          'Order History',
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OrderHistoryPage()),
+            );
+          },
+        ),
+        _buildDashboardCard(
+          context,
+          Icons.table_chart,
+          'Table Assignment',
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TableAssignmentPage()),
+            );
+          },
+        ),
+      ],
     );
   }
 
-  // Helper function to create action buttons
-  Widget _buildActionButton(
+  // ListView Dashboard for Mobile
+  Widget _buildListDashboardMobile(BuildContext context) {
+    return ListView(
+      children: [
+        _buildDashboardCard(
+          context,
+          Icons.add_shopping_cart,
+          'Order Management',
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OrderManagementPage()),
+            );
+          },
+        ),
+        _buildDashboardCard(
+          context,
+          Icons.history,
+          'Order History',
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OrderHistoryPage()),
+            );
+          },
+        ),
+        _buildDashboardCard(
+          context,
+          Icons.table_chart,
+          'Table Assignment',
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TableAssignmentPage()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // Common Dashboard Card
+  Widget _buildDashboardCard(
     BuildContext context,
     IconData icon,
     String label,
     VoidCallback onPressed,
   ) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
+    return GestureDetector(
+      onTap: onPressed,
+      child: Card(
+        elevation: 4,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
-        backgroundColor: Colors.blueAccent,
-        padding: const EdgeInsets.all(16), // You can change the color
-      ),
-      onPressed: onPressed,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 40, color: Colors.white),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white,
-            ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 50, color: Colors.blueAccent),
+              const SizedBox(height: 16),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
