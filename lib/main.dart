@@ -11,6 +11,7 @@ Future<void> main() async {
 
   // Initialize Hive and open the necessary boxes
   await Hive.initFlutter();
+  // await Hive.deleteBoxFromDisk('accountBox'); // Clear for clean testing
   final accountBox = await Hive.openBox<Map>('accountBox');
   // await Hive.deleteBoxFromDisk('userBox'); // Clear for clean testing
   final userBox = await Hive.openBox<Map>('userBox');

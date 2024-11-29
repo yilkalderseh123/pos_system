@@ -22,6 +22,16 @@ class AccountRepository {
         'password': 'cashier123',
         'role': 'Cashier',
       });
+      await userBox.put('kitchen', {
+        'username': 'kitchen',
+        'password': 'kitchen123',
+        'role': 'Kitchen',
+      });
+      await userBox.put('waitstaff', {
+        'username': 'waitstaff',
+        'password': 'waitstaff123',
+        'role': 'Waitstaff',
+      });
     }
   }
 }
