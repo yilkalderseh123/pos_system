@@ -27,36 +27,99 @@ class LoginScreen extends StatelessWidget {
           }
         },
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Login',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                TextField(
-                  controller: usernameController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                ),
-                TextField(
-                  controller: passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    final username = usernameController.text.trim();
-                    final password = passwordController.text.trim();
-                    context
-                        .read<AuthBloc>()
-                        .add(LoginRequested(username, password));
-                  },
-                  child: const Text('Login'),
-                ),
-              ],
+          child: SingleChildScrollView(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                double fieldWidth = constraints.maxWidth > 600
+                    ? 400
+                    : constraints.maxWidth * 0.9;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // App logo or illustration
+                      const CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage(
+                            'assets/logo.png'), // Replace with your logo path
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Welcome Back!',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Login to continue',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 30),
+                      // Username field
+                      SizedBox(
+                        width: fieldWidth,
+                        child: TextField(
+                          controller: usernameController,
+                          decoration: InputDecoration(
+                            labelText: 'Username',
+                            prefixIcon: const Icon(Icons.person),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Password field
+                      SizedBox(
+                        width: fieldWidth,
+                        child: TextField(
+                          controller: passwordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            prefixIcon: const Icon(Icons.lock),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // Login button
+                      SizedBox(
+                        width: fieldWidth,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final username = usernameController.text.trim();
+                            final password = passwordController.text.trim();
+                            context
+                                .read<AuthBloc>()
+                                .add(LoginRequested(username, password));
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                          child: const Text(
+                            'Login',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ),
