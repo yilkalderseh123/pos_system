@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import './login_screen.dart'; // Ensure you import the LoginScreen
 
 class KitchenScreen extends StatefulWidget {
-  KitchenScreen({super.key});
+  const KitchenScreen({super.key});
 
   @override
   _KitchenScreenState createState() => _KitchenScreenState();
@@ -26,34 +26,24 @@ class _KitchenScreenState extends State<KitchenScreen> {
     Hive.init(appDir.path);
 
     // Open Hive box for orders
-    ordersBox = await Hive.openBox<Map>('orders');
-
-    // Initialize dummy data if empty
-    if (ordersBox.isEmpty) {
-      final dummyOrders = [
-        {'orderId': 101, 'tableNumber': 5, 'status': 'Pending'},
-        {'orderId': 102, 'tableNumber': 2, 'status': 'Pending'},
-        {'orderId': 103, 'tableNumber': 8, 'status': 'Pending'},
-      ];
-      for (var order in dummyOrders) {
-        await ordersBox.add(order);
-      }
-    }
+    ordersBox = await Hive.openBox<Map>('order_items');
 
     setState(() {
       isLoading = false; // Data initialization complete
     });
   }
 
-  Future<void> _updateOrderStatus(int index) async {
+  Future<void> _updateOrderStatus(int index, String newStatus) async {
     final order = ordersBox.getAt(index);
     if (order != null) {
       final updatedOrder = Map<String, dynamic>.from(order)
-        ..['status'] = 'Prepared';
+        ..['status'] = newStatus;
       await ordersBox.putAt(index, updatedOrder);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Order #${order['orderId']} marked as Prepared')),
+          content:
+              Text('Order for ${order['item']} has been marked as $newStatus'),
+        ),
       );
     }
   }
@@ -70,15 +60,14 @@ class _KitchenScreenState extends State<KitchenScreen> {
               // Navigate to LoginScreen on logout
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
               );
             },
           ),
         ],
       ),
       body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator()) // Show loading spinner
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -108,13 +97,32 @@ class _KitchenScreenState extends State<KitchenScreen> {
                             return Card(
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               child: ListTile(
-                                title: Text('Order #${order['orderId']}'),
-                                subtitle:
-                                    Text('Table: ${order['tableNumber']}'),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    order['imageUrl'] ??
+                                        'https://via.placeholder.com/50',
+                                    fit: BoxFit.cover,
+                                    width: 50,
+                                    height: 50,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(Icons.image);
+                                    },
+                                  ),
+                                ),
+                                title: Text(order['item'] ?? 'Unknown Item'),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Notes: ${order['notes'] ?? 'None'}'),
+                                    Text('Status: ${order['status']}'),
+                                  ],
+                                ),
                                 trailing: ElevatedButton(
                                   onPressed: order['status'] == 'Prepared'
                                       ? null
-                                      : () => _updateOrderStatus(index),
+                                      : () =>
+                                          _updateOrderStatus(index, 'Prepared'),
                                   child: Text(order['status'] == 'Prepared'
                                       ? 'Prepared'
                                       : 'Mark as Prepared'),
@@ -134,7 +142,10 @@ class _KitchenScreenState extends State<KitchenScreen> {
 
   @override
   void dispose() {
-    Hive.close(); // Close Hive boxes when the widget is disposed
+    // Do not close Hive completely, close only the ordersBox
+    if (ordersBox.isOpen) {
+      ordersBox.close();
+    }
     super.dispose();
   }
 }
