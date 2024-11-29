@@ -1,17 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import './src/routes/app_routes.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Hive
-  await Hive.initFlutter();
-
-  // Open the necessary boxes (you can add more boxes as required)
-  await Hive.openBox('transactionsBox');
-
-  runApp(const RestaurantPOSApp());
+void main() {
+  runApp(RestaurantPOSApp());
 }
 
 class RestaurantPOSApp extends StatelessWidget {

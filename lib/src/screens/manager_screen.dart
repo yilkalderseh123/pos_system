@@ -19,7 +19,7 @@ class ManagerScreen extends StatelessWidget {
               // Navigate to LoginScreen on logout
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                MaterialPageRoute(builder: (context) => LoginScreen()),
               );
             },
           ),

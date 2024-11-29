@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dashboard_screen.dart';
@@ -11,7 +10,6 @@ import 'waitstaff_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -19,18 +17,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  // List of roles
-  final List<String> roles = [
-    'Admin',
-    'Manager',
-    'Cashier',
-    'Kitchen',
-    'Waitstaff'
-  ];
-
-  // Variable to hold selected role
-  String? selectedRole;
+  late Box<Map> userBox;
 
   @override
   void initState() {
@@ -38,76 +25,117 @@ class _LoginScreenState extends State<LoginScreen> {
     initializeHive();
   }
 
+  /// Initialize Hive and create sample data if the database is empty.
   Future<void> initializeHive() async {
-    await Hive.initFlutter(); // Ensure Hive is initialized
-    final box = await Hive.openBox('userBox');
-
-    if (box.isEmpty) {
-      // Adding sample data for roles
-      box.put('Admin', {'username': 'admin', 'password': 'admin123'});
-      box.put('Manager', {'username': 'manager', 'password': 'manager123'});
-      box.put('Cashier', {'username': 'cashier', 'password': 'cashier123'});
-      box.put('Kitchen', {'username': 'kitchen', 'password': 'kitchen123'});
-      box.put(
-          'Waitstaff', {'username': 'waitstaff', 'password': 'waitstaff123'});
+    await Hive.initFlutter(); // Initialize Hive
+    userBox = await Hive.openBox<Map>('userBox'); // Open the box for users
+    if (userBox.isEmpty) {
+      print('User box is empty, adding sample data...');
+      // Add default sample users with usernames
+      await userBox.put('admin', {
+        'username': 'admin',
+        'password': 'admin123',
+        'role': 'Admin',
+      });
+      await userBox.put('manager', {
+        'username': 'manager',
+        'password': 'manager123',
+        'role': 'Manager',
+      });
+      await userBox.put('cashier', {
+        'username': 'cashier',
+        'password': 'cashier123',
+        'role': 'Cashier',
+      });
+      await userBox.put('kitchen', {
+        'username': 'kitchen',
+        'password': 'kitchen123',
+        'role': 'Kitchen',
+      });
+      await userBox.put('waitstaff', {
+        'username': 'waitstaff',
+        'password': 'waitstaff123',
+        'role': 'Waitstaff',
+      });
+    } else {
+      print('User box already contains data');
     }
   }
 
+  /// Validate login credentials and redirect to the appropriate screen.
   Future<void> login(BuildContext context) async {
-    if (usernameController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty &&
-        selectedRole != null) {
-      final box = await Hive.openBox('userBox');
-      final roleData = box.get(selectedRole);
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
+    try {
+      // Check if username exists
+      final userEntry = userBox.values.firstWhere(
+        (user) =>
+            user['username'].toString().toLowerCase() == username.toLowerCase(),
+        orElse: () => {}, // Return empty map if user not found
+      );
 
-      if (roleData != null &&
-          roleData['username'] == usernameController.text &&
-          roleData['password'] == passwordController.text) {
-        // Save session to SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setString('role', selectedRole!);
+      // Check if userEntry is not empty
+      if (userEntry.isNotEmpty) {
+        final userPassword = userEntry['password'];
+        final userRole = userEntry['role'];
+        // Check if password matches
+        if (userPassword == password) {
+          final storedUsername = userEntry['username'];
 
-        // Redirect based on the role
-        Widget destinationScreen;
-        switch (selectedRole) {
-          case 'Admin':
+          // Save session data
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('isLoggedIn', true);
+          await prefs.setString('role', userRole ?? '');
+          await prefs.setString('username', storedUsername ?? '');
+
+          // Redirect based on role
+          Widget destinationScreen;
+          if (userRole == 'Admin') {
             destinationScreen = const AdminScreen();
-            break;
-          case 'Manager':
+          } else if (userRole == 'Manager') {
             destinationScreen = const ManagerScreen();
-            break;
-          case 'Cashier':
+          } else if (userRole == 'Cashier') {
             destinationScreen = const CashierScreen();
-            break;
-          case 'Kitchen':
+          } else if (userRole == 'Kitchen') {
             destinationScreen = KitchenScreen();
-            break;
-          case 'Waitstaff':
+          } else if (userRole == 'Waitstaff') {
             destinationScreen = const WaitstaffScreen();
-            break;
-          default:
+          } else {
+            // Default destination if no valid role is found
             destinationScreen = const DashboardScreen();
-        }
+          }
 
-        // Navigate to the destination screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => destinationScreen),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Welcome, $storedUsername!')),
+          );
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => destinationScreen),
+          );
+        } else {
+          // Invalid password
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid password')),
+          );
+        }
       } else {
-        // Invalid credentials
+        // Username does not exist
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid username or password')),
+          const SnackBar(content: Text('Username not found')),
         );
       }
-    } else {
-      // Missing fields
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please fill all fields and select a role.')),
-      );
+    } catch (e) {
+      print('Login Error: $e'); // Print the exception to the console
+      showError('An error occurred. Please try again.');
     }
+  }
+
+  // Show an error message
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -124,30 +152,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Centered Title
                     const Text(
                       'Login',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
-                    // Login Form
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: screenWidth < 600 ? screenWidth * 0.9 : 400,
                       ),
                       child: Column(
                         children: [
-                          // Username TextField
                           TextField(
                             controller: usernameController,
                             decoration:
                                 const InputDecoration(labelText: 'Username'),
                           ),
                           const SizedBox(height: 10),
-                          // Password TextField
                           TextField(
                             controller: passwordController,
                             decoration:
@@ -155,25 +177,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText: true,
                           ),
                           const SizedBox(height: 20),
-                          // Role Selector Dropdown
-                          DropdownButtonFormField<String>(
-                            decoration:
-                                const InputDecoration(labelText: 'Role'),
-                            value: selectedRole,
-                            items: roles.map((role) {
-                              return DropdownMenuItem<String>(
-                                value: role,
-                                child: Text(role),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              setState(() {
-                                selectedRole = newValue;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                          // Login Button
                           ElevatedButton(
                             onPressed: () => login(context),
                             child: const Text('Login'),
