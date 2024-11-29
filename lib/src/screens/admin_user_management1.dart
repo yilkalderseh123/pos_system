@@ -1,54 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'user_management_bloc.dart';
-import 'user_management_event.dart';
-import 'user_management_state.dart';
-import 'user_repository.dart';
-import 'user_model.dart';
+import '../blocs/user_management/user_management_bloc.dart';
 
-class UserManagementScreen extends StatefulWidget {
+class UserManagementScreen extends StatelessWidget {
   const UserManagementScreen({Key? key}) : super(key: key);
-
-  @override
-  _UserManagementScreenState createState() => _UserManagementScreenState();
-}
-
-class _UserManagementScreenState extends State<UserManagementScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Dispatch LoadUsersEvent when the screen is initialized
-    context.read<UserManagementBloc>().add(LoadUsersEvent());
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('User Management')),
+      appBar: AppBar(
+        title: const Text("User Management"),
+      ),
       body: BlocBuilder<UserManagementBloc, UserManagementState>(
         builder: (context, state) {
           if (state is UserManagementInitial) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is UserManagementLoaded) {
-            // Display users if loaded successfully
-            final users = state.users;
+          }
+
+          if (state is UserManagementLoaded) {
+            if (state.users.isEmpty) {
+              return const Center(child: Text("No users found. Add some!"));
+            }
+
             return ListView.builder(
-              itemCount: users.length,
+              itemCount: state.users.length,
               itemBuilder: (context, index) {
-                final user = users[index];
-                return ListTile(
-                  title: Text(user.name),
-                  subtitle: Text(user.email),
+                final user = state.users[index];
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    title: Text(user.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(user.email),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _showUserModal(context, user: user),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => context
+                              .read<UserManagementBloc>()
+                              .add(DeleteUser(user.id)),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             );
-          } else if (state is UserManagementError) {
-            // Show error message
-            return Center(child: Text('Error: ${state.message}'));
-          } else {
-            return const Center(child: Text('Unknown state'));
           }
+
+          return const Center(child: Text("Something went wrong."));
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showUserModal(context),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _showUserModal(BuildContext context, {User? user}) {
+    final nameController = TextEditingController(text: user?.name);
+    final emailController = TextEditingController(text: user?.email);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(user == null ? "Add User" : "Edit User"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: "Name"),
+            ),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: "Email"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newUser = User(
+                id: user?.id ?? DateTime.now().toIso8601String(),
+                name: nameController.text,
+                email: emailController.text,
+              );
+
+              if (user == null) {
+                context.read<UserManagementBloc>().add(AddUser(newUser));
+              } else {
+                context.read<UserManagementBloc>().add(UpdateUser(newUser));
+              }
+
+              Navigator.of(context).pop();
+            },
+            child: const Text("Save"),
+          ),
+        ],
       ),
     );
   }

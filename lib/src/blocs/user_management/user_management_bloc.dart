@@ -5,18 +5,38 @@ import 'package:hive_flutter/hive_flutter.dart';
 // User Model
 class User {
   final String id;
-  final String name;
+  final String firstName;
+  final String lastName;
+  final String phoneNumber;
   final String email;
+  final String role;
 
-  User({required this.id, required this.name, required this.email});
+  User({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    required this.phoneNumber,
+    required this.email,
+    required this.role,
+  });
 
-  Map<String, dynamic> toMap() => {'id': id, 'name': name, 'email': email};
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'firstName': firstName,
+        'lastName': lastName,
+        'phoneNumber': phoneNumber,
+        'email': email,
+        'role': role,
+      };
 
   static User fromMap(Map<String, dynamic> map) {
     return User(
       id: map['id'] ?? '',
-      name: map['name'] ?? '',
+      firstName: map['firstName'] ?? '',
+      lastName: map['lastName'] ?? '',
+      phoneNumber: map['phoneNumber'] ?? '',
       email: map['email'] ?? '',
+      role: map['role'] ?? '',
     );
   }
 }
