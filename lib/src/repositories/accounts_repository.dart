@@ -1,9 +1,9 @@
 import 'package:hive/hive.dart';
 
-class UserRepository {
+class AccountRepository {
   final Box<Map> userBox;
 
-  UserRepository(this.userBox);
+  AccountRepository(this.userBox);
 
   Future<void> initializeDefaultUsers() async {
     if (userBox.isEmpty) {

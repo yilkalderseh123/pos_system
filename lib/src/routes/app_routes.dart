@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../screens/admin_screen.dart';
 import '../screens/cashier_screen.dart';
-import '../screens/dashboard_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/kitchen_screen.dart';
 import '../screens/manager_screen.dart';
-import '../screens/menu_screen.dart';
 import '../screens/waitstaff_screen.dart';
 
 /// A utility class for managing app routes.
@@ -29,14 +27,10 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const AdminScreen());
       case cashier_screen:
         return MaterialPageRoute(builder: (_) => const CashierScreen());
-      case dashboard_screen:
-        return MaterialPageRoute(builder: (_) => DashboardScreen());
       case kitchen_screen:
         return MaterialPageRoute(builder: (_) => KitchenScreen());
       case manager_screen:
         return MaterialPageRoute(builder: (_) => const ManagerScreen());
-      case menu_screen:
-        return MaterialPageRoute(builder: (_) => MenuScreen());
       case waitstaff_screen:
         return MaterialPageRoute(builder: (_) => const WaitstaffScreen());
       default:

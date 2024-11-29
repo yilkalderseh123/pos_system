@@ -1,253 +1,115 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/user_management/user_management_bloc.dart';
 
-class UserManagementScreen extends StatefulWidget {
-  const UserManagementScreen({super.key});
-
-  @override
-  State<UserManagementScreen> createState() => _UserManagementScreenState();
-}
-
-class _UserManagementScreenState extends State<UserManagementScreen> {
-  late Box _userBox;
-  final String boxName = 'users';
-  String _selectedRole = 'User'; // Initialize the default role
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeHive();
-  }
-
-  Future<void> _initializeHive() async {
-    try {
-      final appDocumentDir = await getApplicationDocumentsDirectory();
-      Hive.init(appDocumentDir.path);
-      _userBox = await Hive.openBox(boxName);
-      setState(() {}); // Refresh UI after Hive is initialized
-    } catch (e) {
-      print('Hive initialization error: $e');
-    }
-  }
-
-  Future<void> _addUser(String name, String email, String role) async {
-    final id = _userBox.length + 1;
-    await _userBox
-        .put(id, {"id": id, "name": name, "email": email, "role": role});
-    setState(() {}); // Refresh UI
-  }
-
-  Future<void> _editUser(int key, Map<String, dynamic> updatedUser) async {
-    await _userBox.put(key, updatedUser);
-    setState(() {}); // Refresh UI
-  }
-
-  Future<void> _deleteUser(int key) async {
-    await _userBox.delete(key);
-    setState(() {}); // Refresh UI
-  }
-
-  @override
-  void dispose() {
-    Hive.close(); // Ensure Hive is closed when the widget is disposed
-    super.dispose();
-  }
+class UserManagementScreen extends StatelessWidget {
+  const UserManagementScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (_userBox.isOpen == false) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Management'),
+        title: const Text("User Management"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            ElevatedButton.icon(
-              onPressed: () => _showAddUserDialog(),
-              icon: const Icon(Icons.add),
-              label: const Text("Add User"),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: _userBox.isEmpty
-                  ? const Center(child: Text('No users added.'))
-                  : ListView.builder(
-                      itemCount: _userBox.keys.length,
-                      itemBuilder: (context, index) {
-                        final key = _userBox.keyAt(index);
-                        final user = _userBox.get(key);
+      body: BlocBuilder<UserManagementBloc, UserManagementState>(
+        builder: (context, state) {
+          if (state is UserManagementInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                        if (user is Map<String, dynamic>) {
-                          return Card(
-                            elevation: 4,
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                child: Text(user['name'][0]),
-                              ),
-                              title: Text(user['name']),
-                              subtitle: Text(
-                                  "Email: ${user['email']}\nRole: ${user['role']}"),
-                              isThreeLine: true,
-                              trailing: PopupMenuButton(
-                                onSelected: (value) {
-                                  if (value == 'edit') {
-                                    _showEditUserDialog(key, user);
-                                  } else if (value == 'delete') {
-                                    _deleteUser(key);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                      value: 'edit', child: Text('Edit')),
-                                  const PopupMenuItem(
-                                      value: 'delete', child: Text('Delete')),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else {
-                          return const SizedBox();
-                        }
-                      },
+          if (state is UserManagementLoaded) {
+            if (state.users.isEmpty) {
+              return const Center(child: Text("No users found. Add some!"));
+            }
+
+            return ListView.builder(
+              itemCount: state.users.length,
+              itemBuilder: (context, index) {
+                final user = state.users[index];
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    title: Text(user.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(user.email),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _showUserModal(context, user: user),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => context
+                              .read<UserManagementBloc>()
+                              .add(DeleteUser(user.id)),
+                        ),
+                      ],
                     ),
+                  ),
+                );
+              },
+            );
+          }
+
+          return const Center(child: Text("Something went wrong."));
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showUserModal(context),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _showUserModal(BuildContext context, {User? user}) {
+    final nameController = TextEditingController(text: user?.name);
+    final emailController = TextEditingController(text: user?.email);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(user == null ? "Add User" : "Edit User"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: "Name"),
+            ),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: "Email"),
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newUser = User(
+                id: user?.id ?? DateTime.now().toIso8601String(),
+                name: nameController.text,
+                email: emailController.text,
+              );
+
+              if (user == null) {
+                context.read<UserManagementBloc>().add(AddUser(newUser));
+              } else {
+                context.read<UserManagementBloc>().add(UpdateUser(newUser));
+              }
+
+              Navigator.of(context).pop();
+            },
+            child: const Text("Save"),
+          ),
+        ],
       ),
-    );
-  }
-
-  void _showAddUserDialog() {
-    String name = '';
-    String email = '';
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Add User"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(labelText: "Name"),
-                onChanged: (value) => name = value,
-              ),
-              TextField(
-                decoration: const InputDecoration(labelText: "Email"),
-                onChanged: (value) => email = value,
-              ),
-              DropdownButtonFormField<String>(
-                value: _selectedRole,
-                items: const [
-                  DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                  DropdownMenuItem(value: 'Manager', child: Text('Manager')),
-                  DropdownMenuItem(value: 'Cashier', child: Text('Cashier')),
-                  DropdownMenuItem(value: 'Kitchen', child: Text('Kitchen')),
-                  DropdownMenuItem(
-                      value: 'Waitstaff', child: Text('Waitstaff')),
-                  DropdownMenuItem(value: 'User', child: Text('User')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedRole = value;
-                    });
-                  }
-                },
-                decoration: const InputDecoration(labelText: "Role"),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (name.isNotEmpty && email.isNotEmpty) {
-                  _addUser(name, email, _selectedRole);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text("Add"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showEditUserDialog(int key, Map<String, dynamic> user) {
-    String name = user['name'];
-    String email = user['email'];
-    String role = user['role'];
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Edit User"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(labelText: "Name"),
-                controller: TextEditingController(text: name),
-                onChanged: (value) => name = value,
-              ),
-              TextField(
-                decoration: const InputDecoration(labelText: "Email"),
-                controller: TextEditingController(text: email),
-                onChanged: (value) => email = value,
-              ),
-              DropdownButtonFormField<String>(
-                value: role,
-                items: const [
-                  DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                  DropdownMenuItem(value: 'Manager', child: Text('Manager')),
-                  DropdownMenuItem(value: 'Cashier', child: Text('Cashier')),
-                  DropdownMenuItem(value: 'Kitchen', child: Text('Kitchen')),
-                  DropdownMenuItem(
-                      value: 'Waitstaff', child: Text('Waitstaff')),
-                  DropdownMenuItem(value: 'User', child: Text('User')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      role = value;
-                    });
-                  }
-                },
-                decoration: const InputDecoration(labelText: "Role"),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _editUser(key,
-                    {"id": key, "name": name, "email": email, "role": role});
-                Navigator.pop(context);
-              },
-              child: const Text("Save"),
-            ),
-          ],
-        );
-      },
     );
   }
 }
