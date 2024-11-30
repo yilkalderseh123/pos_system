@@ -32,6 +32,11 @@ class AccountRepository {
         'password': 'waitstaff123',
         'role': 'Waitstaff',
       });
+      await userBox.put('customer', {
+        'username': 'customer',
+        'password': 'customer123',
+        'role': 'customer',
+      });
     }
   }
 }
