@@ -54,13 +54,7 @@ class _TableAssignmentPageState extends State<TableAssignmentPage> {
     );
   }
 
-  Widget buildTable(
-      Map<String, dynamic> tableData, int index, double maxWidth) {
-    double itemSize =
-        maxWidth * 0.2; // Adjusts size dynamically based on maxWidth
-    itemSize = itemSize.clamp(
-        120.0, 200.0); // Limits size to prevent overflow on large devices
-
+  Widget buildTable(Map<String, dynamic> tableData, int index, double width) {
     return GestureDetector(
       onTap: tableData['isAvailable']
           ? () => assignTable(index)
@@ -84,14 +78,14 @@ class _TableAssignmentPageState extends State<TableAssignmentPage> {
             Icon(
               tableData['isAvailable'] ? Icons.check_circle : Icons.block,
               color: Colors.white,
-              size: itemSize * 0.3,
+              size: width * 0.1,
             ),
             SizedBox(height: 8),
             Text(
               'Table ${tableData['tableNumber']}',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: itemSize * 0.15,
+                fontSize: width * 0.04,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -101,7 +95,7 @@ class _TableAssignmentPageState extends State<TableAssignmentPage> {
               tableData['isAvailable'] ? 'Available' : 'Occupied',
               style: TextStyle(
                 color: Colors.white70,
-                fontSize: itemSize * 0.12,
+                fontSize: width * 0.035,
               ),
               textAlign: TextAlign.center,
             ),
@@ -112,10 +106,10 @@ class _TableAssignmentPageState extends State<TableAssignmentPage> {
                   'Customer: ${tableData['customer']}',
                   style: TextStyle(
                     color: Colors.white70,
-                    fontSize: itemSize * 0.1,
+                    fontSize: width * 0.03,
                   ),
                   textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis, // Prevent text overflow
                 ),
               ),
           ],
@@ -126,7 +120,8 @@ class _TableAssignmentPageState extends State<TableAssignmentPage> {
 
   @override
   Widget build(BuildContext context) {
-    double maxWidth = MediaQuery.of(context).size.width;
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
@@ -152,7 +147,7 @@ class _TableAssignmentPageState extends State<TableAssignmentPage> {
               ),
               itemCount: tables.length,
               itemBuilder: (context, index) {
-                return buildTable(tables[index], index, maxWidth);
+                return buildTable(tables[index], index, width);
               },
             );
           },

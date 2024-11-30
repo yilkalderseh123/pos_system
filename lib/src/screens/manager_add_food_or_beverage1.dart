@@ -1,4 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+class FoodBeverageItem {
+  final String name;
+  final int quantity;
+  final double price;
+  final String imageUrl;
+
+  FoodBeverageItem({
+    required this.name,
+    required this.quantity,
+    required this.price,
+    required this.imageUrl,
+  });
+
+  // Convert FoodBeverageItem to a Map for Hive storage
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'quantity': quantity,
+      'price': price,
+      'imageUrl': imageUrl,
+    };
+  }
+
+  // Create FoodBeverageItem from a Map
+  factory FoodBeverageItem.fromMap(Map<String, dynamic> map) {
+    return FoodBeverageItem(
+      name: map['name'] as String,
+      quantity: map['quantity'] as int,
+      price: map['price'] as double,
+      imageUrl: map['imageUrl'] as String,
+    );
+  }
+}
 
 class AddFoodOrBeveragePage extends StatelessWidget {
   const AddFoodOrBeveragePage({super.key});
@@ -6,6 +41,11 @@ class AddFoodOrBeveragePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isDesktop = MediaQuery.of(context).size.width > 600;
+
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController quantityController = TextEditingController();
+    final TextEditingController priceController = TextEditingController();
+    final TextEditingController imageUrlController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
@@ -42,23 +82,27 @@ class AddFoodOrBeveragePage extends StatelessWidget {
                           child: Column(
                             children: [
                               _buildTextField(
+                                controller: nameController,
                                 label: 'Name of Food/Beverage',
                                 hint: 'Enter name',
                               ),
                               const SizedBox(height: 20),
                               _buildTextField(
+                                controller: quantityController,
                                 label: 'Quantity',
                                 hint: 'Enter quantity',
                                 keyboardType: TextInputType.number,
                               ),
                               const SizedBox(height: 20),
                               _buildTextField(
+                                controller: priceController,
                                 label: 'Price',
                                 hint: 'Enter price',
                                 keyboardType: TextInputType.number,
                               ),
                               const SizedBox(height: 20),
                               _buildTextField(
+                                controller: imageUrlController,
                                 label: 'Image Link',
                                 hint: 'Enter image URL',
                                 keyboardType: TextInputType.url,
@@ -73,8 +117,41 @@ class AddFoodOrBeveragePage extends StatelessWidget {
                                     50,
                                   ),
                                 ),
-                                onPressed: () {
-                                  // Save logic goes here
+                                onPressed: () async {
+                                  final String name = nameController.text;
+                                  final int quantity =
+                                      int.tryParse(quantityController.text) ??
+                                          0;
+                                  final double price =
+                                      double.tryParse(priceController.text) ??
+                                          0.0;
+                                  final String imageUrl =
+                                      imageUrlController.text;
+
+                                  if (name.isNotEmpty && imageUrl.isNotEmpty) {
+                                    final newItem = FoodBeverageItem(
+                                      name: name,
+                                      quantity: quantity,
+                                      price: price,
+                                      imageUrl: imageUrl,
+                                    );
+
+                                    final box = await Hive.openBox<Map>(
+                                        'food_beverage_items');
+                                    box.add(newItem.toMap());
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('Item saved successfully!')),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Please fill all required fields.')),
+                                    );
+                                  }
                                 },
                               ),
                             ],
@@ -113,11 +190,13 @@ class AddFoodOrBeveragePage extends StatelessWidget {
   }
 
   Widget _buildTextField({
+    required TextEditingController controller,
     required String label,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return TextField(
+      controller: controller,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,

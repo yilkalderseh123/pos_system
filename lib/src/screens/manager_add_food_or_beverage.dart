@@ -52,7 +52,7 @@ class AddFoodOrBeveragePage extends StatelessWidget {
         title: const Text('Add Food or Beverage'),
       ),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 800),
