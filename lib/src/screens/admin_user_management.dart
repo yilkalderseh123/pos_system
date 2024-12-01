@@ -10,7 +10,8 @@ class UserManagementScreen extends StatelessWidget {
     'Manager',
     'Cashier',
     'Waitstaff',
-    'Kitchen'
+    'Kitchen',
+    'Customer'
   ];
 
   @override

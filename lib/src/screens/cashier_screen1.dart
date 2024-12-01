@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import './cashier_reciets.dart';
 
 class CashierScreen extends StatefulWidget {
   const CashierScreen({super.key});
@@ -50,29 +47,23 @@ class _CashierPageState extends State<CashierScreen> {
     });
   }
 
-  Future<void> _printOrder(Map<String, dynamic> order) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(
-              'Receipt',
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.Divider(),
-            pw.Text('Item: ${order['item']}'),
-            pw.Text('Notes: ${order['notes']}'),
-            pw.Text('Status: ${order['status']}'),
-            pw.Text('Price: \$${order['price']?.toStringAsFixed(2) ?? 'N/A'}'),
-          ],
-        ),
+  void _printOrders() {
+    // Replace with actual print logic if needed
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Print Orders'),
+        content: const Text('Printing orders...'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
-
-    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
   @override
@@ -142,27 +133,11 @@ class _CashierPageState extends State<CashierScreen> {
                                     'Status: ${order['status'] ?? 'Preparing'}'),
                               ],
                             ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '\$${order['price']?.toStringAsFixed(2) ?? '10 Birr'}',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.print),
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ReceiptScreen(order: order),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
+                            trailing: Text(
+                              '\$${order['price']?.toStringAsFixed(2) ?? 'N/A'}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green),
                             ),
                           ),
                         );

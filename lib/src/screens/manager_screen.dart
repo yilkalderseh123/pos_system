@@ -66,21 +66,6 @@ class ManagerScreen extends StatelessWidget {
                           children: [
                             _buildActionCard(
                               context,
-                              Icons.bar_chart,
-                              'View Sales Reports',
-                              'Analyze detailed sales performance.',
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ManagerSalesReportPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildActionCard(
-                              context,
                               Icons.inventory,
                               'Add Menu',
                               'Add Restaurant menu items.',
@@ -105,6 +90,21 @@ class ManagerScreen extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         const DisplayFoodBeveragePage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildActionCard(
+                              context,
+                              Icons.bar_chart,
+                              'View Sales Reports',
+                              'Analyze detailed sales performance.',
+                              () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ManagerSalesReportPage(),
                                   ),
                                 );
                               },
@@ -115,22 +115,6 @@ class ManagerScreen extends StatelessWidget {
                           children: [
                             _buildActionCard(
                               context,
-                              Icons.bar_chart,
-                              'View Sales Reports',
-                              'Analyze detailed sales performance.',
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ManagerSalesReportPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            _buildActionCard(
-                              context,
                               Icons.inventory,
                               'Add Menu',
                               'Add Restaurant menu items.',
@@ -156,6 +140,22 @@ class ManagerScreen extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         const DisplayFoodBeveragePage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            _buildActionCard(
+                              context,
+                              Icons.bar_chart,
+                              'View Sales Reports',
+                              'Analyze detailed sales performance.',
+                              () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ManagerSalesReportPage(),
                                   ),
                                 );
                               },

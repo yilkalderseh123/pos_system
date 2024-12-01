@@ -20,6 +20,7 @@ class AppRoutes {
   static const String waitstaff_screen = '/waitstaff_screen';
   static const String customer_screen = '/customer_screen';
 
+
   /// Method to configure all routes.
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
